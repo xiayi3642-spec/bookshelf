@@ -205,6 +205,10 @@
   }
 
   function renderChips(){
+    chipsEl.onclick = function(e){
+      var ch = e.target && e.target.closest ? e.target.closest('.chip') : null;
+      if(ch){ setCourse(ch.getAttribute('data-course')); }
+    };
     var seen = {};
     BOOKS.forEach(function(b){ seen[b.course] = 1; });
     COURSE_ORDER.forEach(function(c){ if(seen[c]){ addChip(c); } });
@@ -214,7 +218,6 @@
       d.className = 'chip' + (state.course===c ? ' on' : '');
       d.textContent = c;
       d.setAttribute('data-course', c);
-      d.onclick = function(){ setCourse(c); };
       chipsEl.appendChild(d);
     }
   }
