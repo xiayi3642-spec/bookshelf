@@ -257,8 +257,17 @@
   function renderShelf(){
     var list = filtered();
     if(!list.length){ shelfEl.innerHTML = '<div class="empty">没有匹配的书目。</div>'; return; }
-    var groups = groupByCourse(list), html = '';
-    var gi = 1;
+    var html = '';
+    // 最近添加置顶：仅"全部"视图下，取书架末尾 3 册（最新加入的在前）
+    if(state.course === '全部' && !state.q && list.length > 0){
+      var recent = list.slice(-3).reverse();
+      html += '<section class="section">'
+            + '<div class="sec-head"><span class="no">NEW</span><h2 class="serif">最近添加</h2><span class="count">' + recent.length + ' 册</span></div>'
+            + '<div class="grid">';
+      recent.forEach(function(b){ html += cardHTML(b); });
+      html += '</div></section>';
+    }
+    var groups = groupByCourse(list), gi = 1;
     groups.forEach(function(g){
       html += '<section class="section">'
             + '<div class="sec-head"><span class="no">0' + gi + '</span><h2 class="serif">' + esc(g.course) + '</h2><span class="count">' + g.books.length + ' 册</span></div>'
