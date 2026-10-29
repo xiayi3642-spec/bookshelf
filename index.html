@@ -48,11 +48,15 @@
   .section{margin-bottom:40px;}
   .sec-head{
     display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);
-    padding-bottom:8px;margin-bottom:18px;
+    padding-bottom:8px;margin-bottom:18px;cursor:pointer;user-select:none;
   }
+  .sec-head:hover h2{opacity:.6;}
   .sec-head .no{font-size:12px;color:var(--brass);letter-spacing:1px;}
-  .sec-head h2{font-size:19px;letter-spacing:2px;}
+  .sec-head h2{font-size:19px;letter-spacing:2px;transition:opacity .15s;}
   .sec-head .count{font-size:12px;color:var(--muted);}
+  .sec-head .fold{margin-left:auto;color:var(--brass);font-size:12px;line-height:1;transition:transform .18s ease;}
+  .section.collapsed .fold{transform:rotate(-90deg);}
+  .section.collapsed .grid{display:none;}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:26px 20px;}
   .card{position:relative;cursor:pointer;}
   .cover-wrap{
@@ -261,22 +265,41 @@
     // 最近添加置顶：仅"全部"视图下，取书架末尾 3 册（最新加入的在前）
     if(state.course === '全部' && !state.q && list.length > 0){
       var recent = list.slice(-3).reverse();
-      html += '<section class="section">'
-            + '<div class="sec-head"><span class="no">NEW</span><h2 class="serif">最近添加</h2><span class="count">' + recent.length + ' 册</span></div>'
+      html += '<section class="section" data-course="recent">'
+            + '<div class="sec-head"><span class="no">NEW</span><h2 class="serif">最近添加</h2><span class="count">' + recent.length + ' 册</span><span class="fold">▾</span></div>'
             + '<div class="grid">';
       recent.forEach(function(b){ html += cardHTML(b); });
       html += '</div></section>';
     }
     var groups = groupByCourse(list), gi = 1;
     groups.forEach(function(g){
-      html += '<section class="section">'
-            + '<div class="sec-head"><span class="no">0' + gi + '</span><h2 class="serif">' + esc(g.course) + '</h2><span class="count">' + g.books.length + ' 册</span></div>'
+      html += '<section class="section" data-course="' + esc(g.course) + '">'
+            + '<div class="sec-head"><span class="no">0' + gi + '</span><h2 class="serif">' + esc(g.course) + '</h2><span class="count">' + g.books.length + ' 册</span><span class="fold">▾</span></div>'
             + '<div class="grid">';
       g.books.forEach(function(b){ html += cardHTML(b); });
       html += '</div></section>';
       gi++;
     });
     shelfEl.innerHTML = html;
+    // 恢复折叠状态
+    var secs = shelfEl.querySelectorAll('.section');
+    for(var i=0;i<secs.length;i++){
+      var key = 'fold:' + (secs[i].getAttribute('data-course') || '');
+      var c = null; try{ c = localStorage.getItem(key); }catch(e){}
+      if(c){ secs[i].classList.add('collapsed'); }
+    }
+    // 点击分组标题：折叠 / 展开
+    shelfEl.onclick = function(e){
+      var h = e.target && e.target.closest ? e.target.closest('.sec-head') : null;
+      if(!h) return;
+      var sec = h.parentNode;
+      var key = 'fold:' + (sec.getAttribute('data-course') || '');
+      sec.classList.toggle('collapsed');
+      try{
+        if(sec.classList.contains('collapsed')){ localStorage.setItem(key, '1'); }
+        else{ localStorage.removeItem(key); }
+      }catch(err){}
+    };
   }
 
   function cardHTML(b){
