@@ -219,7 +219,7 @@
 
   /* ---------- 数据与书架渲染 ---------- */
   function loadShelf(){
-    fetch('index.json').then(function(r){ return r.json(); }).then(function(books){
+    fetch('index.json?v=' + Date.now()).then(function(r){ return r.json(); }).then(function(books){
       BOOKS = books;
       loadHidden();
       $('totalCount').textContent = books.length;
